@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FairAI - Bias Detection System</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #eaf2ff, #f8fbff);
+            margin: 0;
+            color: #0b1f4d;
+        }
+
+        .hero {
+            padding: 55px 8%;
+            background: linear-gradient(135deg, #0b57d0, #4f8cff);
+            color: white;
+            border-bottom-left-radius: 45px;
+            border-bottom-right-radius: 45px;
+        }
+
+        .hero h1 {
+            font-size: 58px;
+            margin: 0;
+            letter-spacing: -2px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-top: 10px;
+            opacity: 0.95;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.18);
+            padding: 10px 18px;
+            border-radius: 40px;
+            margin-top: 18px;
+            font-weight: 600;
+        }
+
+        .container {
+            width: 86%;
+            margin: -35px auto 50px;
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 18px 45px rgba(30, 80, 160, 0.16);
+            margin-bottom: 28px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+
+        label {
+            font-weight: 700;
+            color: #34466f;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            margin-top: 8px;
+            border-radius: 14px;
+            border: 1px solid #d3def5;
+            font-size: 15px;
+            outline: none;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            border-color: #2f6df6;
+            box-shadow: 0 0 0 4px rgba(47,109,246,0.12);
+        }
+
+        button {
+            background: linear-gradient(135deg, #155eef, #2f80ed);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 22px;
+            box-shadow: 0 12px 22px rgba(47,109,246,0.25);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 24px;
+            border-radius: 22px;
+            box-shadow: 0 14px 35px rgba(30, 80, 160, 0.12);
+            border: 1px solid #edf2ff;
+        }
+
+        .metric-card span {
+            color: #68789f;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .metric-card h2 {
+            margin: 10px 0 0;
+            font-size: 32px;
+        }
+
+        .high {
+            color: #e53935;
+        }
+
+        .medium {
+            color: #fb8c00;
+        }
+
+        .low {
+            color: #2e7d32;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 22px;
+            padding: 28px;
+            box-shadow: 0 14px 35px rgba(30, 80, 160, 0.12);
+            border: 1px solid #edf2ff;
+        }
+
+        .rate-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #edf2ff;
+            font-weight: 700;
+        }
+
+        .ai-box {
+            background: #eef5ff;
+            padding: 22px;
+            border-radius: 18px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            color: #10285c;
+        }
+
+        .download {
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, #18a957, #34c77b);
+            color: white;
+            padding: 16px;
+            border-radius: 14px;
+            text-decoration: none;
+            margin-top: 25px;
+            font-weight: 800;
+            box-shadow: 0 12px 25px rgba(52,199,123,0.25);
+        }
+
+        .error {
+            background: #fff0f0;
+            border-left: 5px solid red;
+            padding: 15px;
+            border-radius: 12px;
+            color: #c62828;
+            font-weight: 700;
+        }
+
+        @media(max-width: 900px) {
+            .form-grid, .grid, .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 42px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="hero">
+    <h1>FairAI</h1>
+    <p>AI-powered bias detection, fairness audit, mitigation insights, and explainable recommendations.</p>
+    <div class="badge">Unbiased AI Decision • Google Gemini Powered</div>
+</div>
+
+<div class="container">
+
+    <div class="panel">
+        <h2>Analyze a Dataset</h2>
+        <p>Upload a CSV file, select sensitive attribute and target decision column, then run a fairness audit.</p>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+    <div class="form-grid">
+
+        <div>
+            <label>Upload CSV Dataset</label>
+            <input type="file" name="csv_file" accept=".csv" required>
+        </div>
+
+        <div>
+            <label>Auto Detection Enabled</label>
+            <input type="text" value="FairAI will automatically detect sensitive attribute, target column, and positive label" readonly>
+        </div>
+
+    </div>
+
+    <button type="submit">Auto Analyze Fairness 🚀</button>
+</form>
+    </div>
+
+    {% if result %}
+
+    <div class="metrics">
+        <div class="metric-card">
+            <span>Risk Level</span>
+            <h2 class="{% if result.risk_level == 'High' %}high{% elif result.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+                {{ result.risk_level }}
+            </h2>
+        </div>
+
+        <div class="metric-card">
+            <span>Fairness Score</span>
+            <h2>{{ result.fairness_score }}%</h2>
+        </div>
+
+        <div class="metric-card">
+            <span>Parity Difference</span>
+            <h2>{{ result.dp_diff }}</h2>
+        </div>
+
+        <div class="metric-card">
+            <span>Rows Analyzed</span>
+            <h2>{{ result.rows }}</h2>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Before Mitigation</h2>
+            {% for group, rate in result.before_rates.items() %}
+                <div class="rate-row">
+                    <span>{{ group }}</span>
+                    <span>{{ rate }}</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            <h2>After Mitigation</h2>
+            {% for group, rate in result.after_rates.items() %}
+                <div class="rate-row">
+                    <span>{{ group }}</span>
+                    <span>{{ rate }}</span>
+                </div>
+            {% endfor %}
+            <br>
+            <b>New Fairness Score:</b> {{ result.after_fairness_score }}% <br>
+            <b>New Risk Level:</b> {{ result.after_risk_level }}
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 28px;">
+        <h2>Fairness Visualization</h2>
+        <canvas id="fairnessChart" height="110"></canvas>
+    </div>
+
+    <div class="card" style="margin-top: 28px;">
+        <h2>Google Gemini AI Explanation</h2>
+        <div class="ai-box">{{ result.ai_explanation }}</div>
+    </div>
+
+    {% if report_file %}
+        <a class="download" href="/download/{{ report_file }}">Download Fairness Report</a>
+    {% endif %}
+
+    <script>
+        const beforeRates = JSON.parse('{{ result.before_rates | tojson | safe }}');
+        const afterRates = JSON.parse('{{ result.after_rates | tojson | safe }}');
+
+        const labels = Object.keys(beforeRates);
+        const beforeData = Object.values(beforeRates);
+        const afterData = labels.map(label => afterRates[label] || 0);
+
+        const ctx = document.getElementById('fairnessChart');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Before Mitigation',
+                        data: beforeData,
+                        backgroundColor: 'rgba(229, 57, 53, 0.65)',
+                        borderColor: 'rgba(229, 57, 53, 1)',
+                        borderWidth: 1,
+                        borderRadius: 10
+                    },
+                    {
+                        label: 'After Mitigation',
+                        data: afterData,
+                        backgroundColor: 'rgba(52, 168, 83, 0.65)',
+                        borderColor: 'rgba(52, 168, 83, 1)',
+                        borderWidth: 1,
+                        borderRadius: 10
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        title: {
+                            display: true,
+                            text: 'Selection Rate'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
